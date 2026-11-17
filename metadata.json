@@ -1,0 +1,6 @@
+{
+  "name": "PitchDraft",
+  "description": "Budget-based football team builder and multiplayer match simulator where managers draft squads, challenge rivals, and simulate matches to crown a winner.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

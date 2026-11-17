@@ -1,0 +1,242 @@
+{
+  "entities": {
+    "Club": {
+      "title": "Club",
+      "description": "A manager's drafted football club, tactical formation, budget ledger, and season standings.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the manager owning this club."
+        },
+        "clubName": {
+          "type": "string",
+          "description": "Custom football club name (2-32 chars)."
+        },
+        "managerAlias": {
+          "type": "string",
+          "description": "Public manager display alias without PII (2-30 chars)."
+        },
+        "formation": {
+          "type": "string",
+          "enum": ["4-3-3", "4-4-2", "3-5-2"],
+          "description": "Selected tactical formation."
+        },
+        "crestColorHex": {
+          "type": "string",
+          "description": "7-char hex color for club crest badge."
+        },
+        "playerIds": {
+          "type": "array",
+          "description": "Ordered list of up to 11 drafted player IDs."
+        },
+        "budgetCap": {
+          "type": "integer",
+          "description": "Total transfer budget cap in tenths of a million (1000 = $100.0M)."
+        },
+        "budgetSpent": {
+          "type": "integer",
+          "description": "Spent transfer budget in tenths of a million (0..1000)."
+        },
+        "budgetRemaining": {
+          "type": "integer",
+          "description": "Remaining transfer budget in tenths of a million (0..1000)."
+        },
+        "overallRating": {
+          "type": "integer",
+          "description": "Computed overall squad rating (0..99)."
+        },
+        "attackRating": {
+          "type": "integer",
+          "description": "Computed attack rating (0..99)."
+        },
+        "midfieldRating": {
+          "type": "integer",
+          "description": "Computed midfield rating (0..99)."
+        },
+        "defenseRating": {
+          "type": "integer",
+          "description": "Computed defense rating (0..99)."
+        },
+        "ready": {
+          "type": "boolean",
+          "description": "True when 11 valid players are drafted and club is published for multiplayer competition."
+        },
+        "wins": {
+          "type": "integer",
+          "description": "Total simulated multiplayer wins."
+        },
+        "draws": {
+          "type": "integer",
+          "description": "Total simulated multiplayer draws."
+        },
+        "losses": {
+          "type": "integer",
+          "description": "Total simulated multiplayer losses."
+        },
+        "points": {
+          "type": "integer",
+          "description": "League points (3 per win, 1 per draw)."
+        },
+        "goalsFor": {
+          "type": "integer",
+          "description": "Total goals scored in multiplayer matches."
+        },
+        "goalsAgainst": {
+          "type": "integer",
+          "description": "Total goals conceded in multiplayer matches."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "ownerId",
+        "clubName",
+        "managerAlias",
+        "formation",
+        "crestColorHex",
+        "playerIds",
+        "budgetCap",
+        "budgetSpent",
+        "budgetRemaining",
+        "overallRating",
+        "attackRating",
+        "midfieldRating",
+        "defenseRating",
+        "ready",
+        "wins",
+        "draws",
+        "losses",
+        "points",
+        "goalsFor",
+        "goalsAgainst",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MatchRecord": {
+      "title": "MatchRecord",
+      "description": "Completed simulated multiplayer football match between two clubs.",
+      "type": "object",
+      "properties": {
+        "homeOwnerId": {
+          "type": "string",
+          "description": "UID of the challenging manager."
+        },
+        "awayOwnerId": {
+          "type": "string",
+          "description": "UID of the rival manager."
+        },
+        "participantIds": {
+          "type": "array",
+          "description": "2-element array [homeOwnerId, awayOwnerId] for participant scoping."
+        },
+        "homeClubName": {
+          "type": "string",
+          "description": "Home club name at match time."
+        },
+        "awayClubName": {
+          "type": "string",
+          "description": "Away club name at match time."
+        },
+        "homeScore": {
+          "type": "integer",
+          "description": "Goals scored by home club."
+        },
+        "awayScore": {
+          "type": "integer",
+          "description": "Goals scored by away club."
+        },
+        "homePenalties": {
+          "type": "integer",
+          "description": "Penalty shootout goals for home club if tied."
+        },
+        "awayPenalties": {
+          "type": "integer",
+          "description": "Penalty shootout goals for away club if tied."
+        },
+        "penaltiesUsed": {
+          "type": "boolean",
+          "description": "Whether match was decided via penalty shootout."
+        },
+        "winnerOwnerId": {
+          "type": "string",
+          "description": "UID of winning manager or DRAW."
+        },
+        "winnerClubName": {
+          "type": "string",
+          "description": "Winning club name or Match Drawn."
+        },
+        "manOfTheMatch": {
+          "type": "string",
+          "description": "Standout player name."
+        },
+        "homePossession": {
+          "type": "integer",
+          "description": "Home possession percentage (10..90)."
+        },
+        "homeShots": {
+          "type": "integer",
+          "description": "Total shots by home team."
+        },
+        "awayShots": {
+          "type": "integer",
+          "description": "Total shots by away team."
+        },
+        "keyEvents": {
+          "type": "array",
+          "description": "Bounded summary of up to 12 match highlights."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["completed"],
+          "description": "Terminal match status."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "homeOwnerId",
+        "awayOwnerId",
+        "participantIds",
+        "homeClubName",
+        "awayClubName",
+        "homeScore",
+        "awayScore",
+        "homePenalties",
+        "awayPenalties",
+        "penaltiesUsed",
+        "winnerOwnerId",
+        "winnerClubName",
+        "manOfTheMatch",
+        "homePossession",
+        "homeShots",
+        "awayShots",
+        "keyEvents",
+        "status",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/clubs/{userId}": {
+      "schema": { "$ref": "#/entities/Club" },
+      "description": "Manager football clubs keyed by owner userId."
+    },
+    "/matches/{matchId}": {
+      "schema": { "$ref": "#/entities/MatchRecord" },
+      "description": "Immutable completed multiplayer match simulation records."
+    }
+  }
+}

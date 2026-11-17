@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">PitchDraft</string>
+    <string name="tagline_stadium">Build your XI. Outsmart rivals. Win matchday.</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_out">Sign out</string>
+    <string name="tab_squad">Squad</string>
+    <string name="tab_market">Market</string>
+    <string name="tab_arena">Arena</string>
+    <string name="tab_league">League</string>
+    <string name="action_save_publish">Save &amp; Publish XI</string>
+    <string name="action_auto_draft">Auto-Draft XI</string>
+    <string name="action_challenge">Challenge</string>
+    <string name="action_solo_scrimmage">Solo Practice Match</string>
+    <string name="hero_stadium_desc">Floodlit football stadium pitch at night</string>
+    <string name="trophy_crest_desc">Championship golden football trophy crest</string>
+</resources>

@@ -1,0 +1,168 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidFormation(f) {
+      return f in ['4-3-3', '4-4-2', '3-5-2'];
+    }
+
+    function isValidClub(data) {
+      return data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 &&
+             data.clubName is string && data.clubName.size() >= 2 && data.clubName.size() <= 32 &&
+             data.managerAlias is string && data.managerAlias.size() >= 2 && data.managerAlias.size() <= 30 &&
+             isValidFormation(data.formation) &&
+             data.crestColorHex is string && data.crestColorHex.size() == 7 && data.crestColorHex.matches('^#[0-9A-Fa-f]{6}$') &&
+             data.playerIds is list && data.playerIds.size() <= 11 &&
+             (data.playerIds.size() == 0 || data.playerIds[0] is string) &&
+             data.budgetCap is int && data.budgetCap == 1000 &&
+             data.budgetSpent is int && data.budgetSpent >= 0 && data.budgetSpent <= 1000 &&
+             data.budgetRemaining is int && data.budgetRemaining >= 0 && data.budgetRemaining <= 1000 &&
+             (data.budgetSpent + data.budgetRemaining == data.budgetCap) &&
+             data.overallRating is int && data.overallRating >= 0 && data.overallRating <= 99 &&
+             data.attackRating is int && data.attackRating >= 0 && data.attackRating <= 99 &&
+             data.midfieldRating is int && data.midfieldRating >= 0 && data.midfieldRating <= 99 &&
+             data.defenseRating is int && data.defenseRating >= 0 && data.defenseRating <= 99 &&
+             data.ready is bool && (!data.ready || data.playerIds.size() == 11) &&
+             data.wins is int && data.wins >= 0 && data.wins <= 100000 &&
+             data.draws is int && data.draws >= 0 && data.draws <= 100000 &&
+             data.losses is int && data.losses >= 0 && data.losses <= 100000 &&
+             data.points is int && data.points >= 0 && data.points <= 300000 &&
+             data.goalsFor is int && data.goalsFor >= 0 && data.goalsFor <= 500000 &&
+             data.goalsAgainst is int && data.goalsAgainst >= 0 && data.goalsAgainst <= 500000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidMatchRecord(data) {
+      return data.homeOwnerId is string && isValidId(data.homeOwnerId) &&
+             data.awayOwnerId is string && isValidId(data.awayOwnerId) &&
+             data.homeOwnerId != data.awayOwnerId &&
+             data.participantIds is list && data.participantIds.size() == 2 &&
+             data.participantIds[0] == data.homeOwnerId &&
+             data.participantIds[1] == data.awayOwnerId &&
+             data.homeClubName is string && data.homeClubName.size() >= 2 && data.homeClubName.size() <= 32 &&
+             data.awayClubName is string && data.awayClubName.size() >= 2 && data.awayClubName.size() <= 32 &&
+             data.homeScore is int && data.homeScore >= 0 && data.homeScore <= 30 &&
+             data.awayScore is int && data.awayScore >= 0 && data.awayScore <= 30 &&
+             data.homePenalties is int && data.homePenalties >= 0 && data.homePenalties <= 20 &&
+             data.awayPenalties is int && data.awayPenalties >= 0 && data.awayPenalties <= 20 &&
+             data.penaltiesUsed is bool &&
+             data.winnerOwnerId is string && data.winnerOwnerId.size() >= 1 && data.winnerOwnerId.size() <= 128 &&
+             (data.winnerOwnerId == data.homeOwnerId || data.winnerOwnerId == data.awayOwnerId || data.winnerOwnerId == 'DRAW') &&
+             data.winnerClubName is string && data.winnerClubName.size() >= 2 && data.winnerClubName.size() <= 32 &&
+             data.manOfTheMatch is string && data.manOfTheMatch.size() >= 2 && data.manOfTheMatch.size() <= 40 &&
+             data.homePossession is int && data.homePossession >= 10 && data.homePossession <= 90 &&
+             data.homeShots is int && data.homeShots >= 0 && data.homeShots <= 60 &&
+             data.awayShots is int && data.awayShots >= 0 && data.awayShots <= 60 &&
+             data.keyEvents is list && data.keyEvents.size() <= 12 &&
+             (data.keyEvents.size() == 0 || data.keyEvents[0] is string) &&
+             data.status == 'completed' &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    match /clubs/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && (
+        resource.data.ready == true || request.auth.uid == userId
+      );
+
+      allow list: if isSignedIn() && (
+        resource.data.ready == true || resource.data.ownerId == request.auth.uid
+      );
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().ownerId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'ownerId', 'clubName', 'managerAlias', 'formation', 'crestColorHex',
+                         'playerIds', 'budgetCap', 'budgetSpent', 'budgetRemaining',
+                         'overallRating', 'attackRating', 'midfieldRating', 'defenseRating',
+                         'ready', 'wins', 'draws', 'losses', 'points', 'goalsFor', 'goalsAgainst',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'ownerId', 'clubName', 'managerAlias', 'formation', 'crestColorHex',
+                         'playerIds', 'budgetCap', 'budgetSpent', 'budgetRemaining',
+                         'overallRating', 'attackRating', 'midfieldRating', 'defenseRating',
+                         'ready', 'wins', 'draws', 'losses', 'points', 'goalsFor', 'goalsAgainst',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidClub(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       isValidClub(incoming()) &&
+                       incoming().ownerId == existing().ownerId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().budgetCap == existing().budgetCap && (
+                         // Action: Save Squad / Club Details
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'clubName', 'managerAlias', 'formation', 'crestColorHex',
+                           'playerIds', 'budgetSpent', 'budgetRemaining',
+                           'overallRating', 'attackRating', 'midfieldRating', 'defenseRating',
+                           'ready', 'updatedAt'
+                         ]) ||
+                         // Action: Record Simulated Match Outcome
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'wins', 'draws', 'losses', 'points', 'goalsFor', 'goalsAgainst', 'updatedAt'
+                         ])
+                       );
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+    }
+
+    match /matches/{matchId} {
+      allow get: if isSignedIn() && isValidId(matchId) && request.auth.uid in resource.data.participantIds;
+      allow list: if isSignedIn() && request.auth.uid in resource.data.participantIds;
+
+      allow create: if isSignedIn() &&
+                       isValidId(matchId) &&
+                       isValidMatchRecord(incoming()) &&
+                       incoming().homeOwnerId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'homeOwnerId', 'awayOwnerId', 'participantIds',
+                         'homeClubName', 'awayClubName', 'homeScore', 'awayScore',
+                         'homePenalties', 'awayPenalties', 'penaltiesUsed',
+                         'winnerOwnerId', 'winnerClubName', 'manOfTheMatch',
+                         'homePossession', 'homeShots', 'awayShots', 'keyEvents',
+                         'status', 'createdAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'homeOwnerId', 'awayOwnerId', 'participantIds',
+                         'homeClubName', 'awayClubName', 'homeScore', 'awayScore',
+                         'homePenalties', 'awayPenalties', 'penaltiesUsed',
+                         'winnerOwnerId', 'winnerClubName', 'manOfTheMatch',
+                         'homePossession', 'homeShots', 'awayShots', 'keyEvents',
+                         'status', 'createdAt'
+                       ]) &&
+                       exists(/databases/$(database)/documents/clubs/$(incoming().homeOwnerId)) &&
+                       exists(/databases/$(database)/documents/clubs/$(incoming().awayOwnerId));
+
+      // Terminal state lock: simulated matches cannot be altered or deleted once recorded
+      allow update, delete: if false;
+    }
+  }
+}
